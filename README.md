@@ -9,7 +9,7 @@ Wrapper for the curses module.
 
 Aim and Scope of the Project
 ============================
-- The project aims to provide a wrapper library for Python's curses module that provides
+- The project aims to create a wrapper library for Python's curses module that provides
   - A user-friendly way to create TUI apps, taking care of the low-level hassle
   - A simple syntax built around Python dictionaries
   - Ready-to-use TUI widgets, based on the package's core module class Div
