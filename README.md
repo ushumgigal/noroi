@@ -30,9 +30,9 @@ Getting Started
 ===============
 Simply clone the repo and run the setup script, then  test.py
 ```bash
-$ git clone https://github.com/ushumgigal/noroi
-$ noroi/tests/setup.sh
-$ noroi/tests/test.py
+git clone https://github.com/ushumgigal/noroi
+noroi/tests/setup.sh
+noroi/tests/test.py
 ```
 <img src="https://raw.githubusercontent.com/ushumgigal/noroi/main/demo.gif" style="width: 768px; height:auto;"/>
 
