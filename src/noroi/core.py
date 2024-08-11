@@ -1,5 +1,6 @@
 import curses
 import numpy
+import os
 from enum import Enum
 
 class Attribute(Enum):
@@ -152,6 +153,15 @@ class Div:
         self._aligners[Alignment.CENTER] = self.__center_align
 
     def visual_update(self, scr, divs, color_handler):
+
+        if( (self._setup["width"] >= curses.COLS) or (self._setup["height"] >= curses.LINES) ):
+            new_height = max(self._setup["height"]+1, curses.LINES)
+            new_width =  max(self._setup["width"]+1, curses.COLS)
+            os.system("printf '\033[8;" + str(new_height) + ";" + str(new_width) + "t'")
+            scr.clear()
+            curses.resizeterm(new_height, new_width)
+            scr.refresh()
+
         color_pair = color_handler.add_color_pair(self._setup["colors"][self.status])
 
         row = ""
