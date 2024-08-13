@@ -44,8 +44,8 @@ main = \
     "name" : "main",
     "type" : DivTypes.DIV,
 
-    "height" : 36,
-    "width" : 108,
+    "height" : 1.0,
+    "width" : 1.0,
 
     "colors" :
     {
@@ -71,7 +71,7 @@ banner = \
     "type" : DivTypes.LABEL,
 
     "height" : 3,
-    "width" : 106,
+    "width" : .7,
 
     "colors" :
     {
@@ -97,7 +97,7 @@ banner = \
     "anchors": None,
 
     "horizontal_margin": 0,
-    "vertical_margin": 2,
+    "vertical_margin": 1,
 }
 
 status_bar = \
@@ -106,7 +106,7 @@ status_bar = \
     "type" : DivTypes.LABEL,
 
     "height" : 1,
-    "width" : 108,
+    "width" : 1.0,
 
     "colors" :
     {
@@ -148,8 +148,8 @@ quit_popup = \
     "name" : "quit_popup",
     "type" : DivTypes.LABEL,
 
-    "height" : 12,
-    "width" : 48,
+    "height" : 0.4,
+    "width" : 0.5,
 
     "colors" :
     {
@@ -174,7 +174,7 @@ quit_popup = \
         "horizontal_alignment" : Alignment.CENTER,
         "vertical_alignment" : None,
         "horizontal_margin": 0,
-        "vertical_margin": 2,
+        "vertical_margin": 0.20,
     },
 }
 
@@ -213,7 +213,7 @@ verify_quit_button = \
 
     "anchors": None,
 
-    "horizontal_margin": -5,
+    "horizontal_margin": -.15,
     "vertical_margin": -3,
 
     "key_map":
@@ -265,7 +265,7 @@ cancel_quit_button = \
 
     "anchors": None,
 
-    "horizontal_margin": 5,
+    "horizontal_margin": .15,
     "vertical_margin": -3,
 
     "key_map":
@@ -299,7 +299,7 @@ quit_button = \
     },
 
     "height" : 3,
-    "width" : 24,
+    "width" : 0.2,
 
     "colors" :
     {
@@ -340,16 +340,16 @@ some_text = \
     "inner":
     {
         "value": "Use the arrow keys to switch focus between the TUI elements you see here.\n\n<Enter> key interacts with buttons and this text area.\n\nTo start editing the text, simply enable this part here with that button on the right, then switch focus and interact.\n\nOnce activated, you can use the arrow keys to navigate within the text area.\n\nIt's quite basic, really. Word wrapping and some conventional shortcuts will be added in the future.\n\nTo quit editing, press <Escape> to deactivate the text area. Finally, you can disable the text area with the same button from earlier, which should read \"← Disable Text Area\" now.\n\nAlso, there's a status bar below, if you haven't noticed.\n\nThat's all. Go nuts!",
-        "width": 35,
-        "height": 16,
+        "width": 0.9,
+        "height": 0.9,
         "horizontal_alignment" : Alignment.CENTER,
         "vertical_alignment" : Alignment.CENTER,
         "horizontal_margin": 0,
         "vertical_margin": 0,
     },
 
-    "width":  35,
-    "height": 16,
+    "width": .4,
+    "height": .54,
 
     "colors" :
     {
@@ -369,7 +369,7 @@ some_text = \
 
     "anchors": None,
 
-    "horizontal_margin": 10,
+    "horizontal_margin": .14,
     "vertical_margin": 0,
 
     "key_map":
@@ -418,7 +418,7 @@ enable_text_button = \
     },
 
     "height" : 3,
-    "width" : 24,
+    "width" : .2,
 
     "colors" :
     {
@@ -469,7 +469,10 @@ hex_master.add_div(quit_button)
 hex_master.add_div(enable_text_button, focus=True)
 hex_master.add_div(some_text, start_disabled=True)
 
-hex_master.start()
+scr_height = 36
+scr_width = 108
+
+hex_master.start(size=[scr_height, scr_width])
 
 keep_looping = False
 x.join()

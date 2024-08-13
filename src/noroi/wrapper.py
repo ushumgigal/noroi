@@ -1,4 +1,4 @@
-from noroi.core import DivTypes, DivStatus, ColorHandler, Div, Label, Button, TextArea
+from noroi.core import DivTypes, DivStatus, ColorHandler, Div, Label, Button, TextArea, resize
 import curses
 
 class HexMaster:
@@ -14,6 +14,9 @@ class HexMaster:
         self.__loop = True
         self.__focused_div = None
         self.__color_handler = ColorHandler()
+
+    def resize(self, new_height, new_width):
+        resize(self.__scr, new_height, new_width)
 
     def terminate(self):
         self.__loop = False
@@ -92,7 +95,7 @@ class HexMaster:
         for w in widows:
             self.remove_div(w)
 
-    def start(self):
+    def start(self, size=None):
         self.__scr = curses.initscr()
         self.__scr.timeout(self.__setup["input_timeout_ms"])
         curses.noecho()
@@ -101,6 +104,9 @@ class HexMaster:
         curses.start_color()
         curses.cbreak()
         self.__scr.keypad(True)
+
+        if(size != None):
+            self.resize( size[0], size[1] )
 
         while(self.__loop):
             self.__update()

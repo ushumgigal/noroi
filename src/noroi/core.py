@@ -3,6 +3,12 @@ import numpy
 import os
 from enum import Enum
 
+def resize(scr, new_height, new_width):
+    os.system("printf '\033[8;" + str(new_height) + ";" + str(new_width) + "t'")
+    scr.clear()
+    curses.resizeterm(new_height, new_width)
+    scr.refresh()
+
 class Attribute(Enum):
 
     BLINK = curses.A_BLINK
@@ -131,14 +137,10 @@ class Div:
 
     def __end_align(self, start, end, size):
         outer_size = end - start + 1
-        if( outer_size < size ):
-            raise ValueError("Error: Div size greater than that of its parent.")
         return end - size + 1
 
     def __center_align(self, start, end, size):
         outer_size = end - start + 1
-        if( outer_size < size ):
-            raise ValueError("Error: Div size greater than that of its parent.")
         return start + int( (outer_size-size) /2)
 
     def __init__(self, setup):
@@ -152,15 +154,40 @@ class Div:
         self._aligners[Alignment.END] = self.__end_align
         self._aligners[Alignment.CENTER] = self.__center_align
 
-    def visual_update(self, scr, divs, color_handler):
+        self._current_width = 0
+        self._current_height = 0
 
-        if( (self._setup["width"] >= curses.COLS) or (self._setup["height"] >= curses.LINES) ):
-            new_height = max(self._setup["height"]+1, curses.LINES)
-            new_width =  max(self._setup["width"]+1, curses.COLS)
-            os.system("printf '\033[8;" + str(new_height) + ";" + str(new_width) + "t'")
-            scr.clear()
-            curses.resizeterm(new_height, new_width)
-            scr.refresh()
+        self._current_horizontal_margin = 0
+        self._current_vertical_margin = 0
+
+    def _relative_size(self, rate, outer_size):
+        relative_size = int(outer_size*rate) - 1
+        return relative_size
+
+    def visual_update(self, scr, divs, color_handler):
+        parent_width = curses.COLS if (self._setup["parent"]==None) else divs[self._setup["parent"]]._current_width
+        parent_height = curses.LINES if (self._setup["parent"]==None) else divs[self._setup["parent"]]._current_height
+
+        if( isinstance(self._setup["width"], int) ):
+            self._current_width = self._setup["width"]
+        elif( isinstance(self._setup["width"], float) ):
+            self._current_width = self._relative_size( self._setup["width"], parent_width)
+        else:
+            err_msg = "Error: Div width may only be of type int or float."
+            raise ValueError(err_msg)
+
+        if( isinstance(self._setup["height"], int) ):
+            self._current_height = self._setup["height"]
+        elif( isinstance(self._setup["height"], float) ):
+            self._current_height = self._relative_size( self._setup["height"], parent_height)
+        else:
+            err_msg = "Error: Div height may only be of type int or float."
+            raise ValueError(err_msg)
+
+        if( (self._current_width >= curses.COLS) or (self._current_height >= curses.LINES) ):
+            new_height = max(self._current_height+1, curses.LINES)
+            new_width =  max(self._current_width+1, curses.COLS)
+            resize(scr, new_height, new_width)
 
         color_pair = color_handler.add_color_pair(self._setup["colors"][self.status])
 
@@ -170,13 +197,13 @@ class Div:
             if(self._setup["parent"] != None):
                 self._spot_x = self._aligners[self._setup["horizontal_alignment"]](
                     divs[self._setup["parent"]]._spot_x,
-                    divs[self._setup["parent"]]._spot_x + divs[self._setup["parent"]]._setup["width"] - 1,
-                    self._setup["width"] )
+                    divs[self._setup["parent"]]._spot_x + divs[self._setup["parent"]]._current_width - 1,
+                    self._current_width )
             else:
                 self._spot_x = self._aligners[self._setup["horizontal_alignment"]](
                     0,
                     curses.COLS-1,
-                    self._setup["width"] )
+                    self._current_width )
         elif(self._setup["parent"] != None):
             self._spot_x = divs[self._setup["parent"]]._spot_x
 
@@ -184,13 +211,13 @@ class Div:
             if(self._setup["parent"] != None):
                 self._spot_y = self._aligners[self._setup["vertical_alignment"]](
                     divs[self._setup["parent"]]._spot_y,
-                    divs[self._setup["parent"]]._spot_y + divs[self._setup["parent"]]._setup["height"] - 1,
-                    self._setup["height"] )
+                    divs[self._setup["parent"]]._spot_y + divs[self._setup["parent"]]._current_height - 1,
+                    self._current_height )
             else:
                 self._spot_y = self._aligners[self._setup["vertical_alignment"]](
                     0,
                     curses.LINES-1,
-                    self._setup["height"] )
+                    self._current_height )
         elif(self._setup["parent"] != None):
             self._spot_y = divs[self._setup["parent"]]._spot_y
 
@@ -199,28 +226,45 @@ class Div:
             if(self._setup["anchors"]["horizontal"] != None):
                 anchor = self._setup["anchors"]["horizontal"]
                 if(anchor["edge_of_target_div"] == AnchorEdges.LEFT):
-                    self._spot_x = divs[anchor["latch_to_div"]]._spot_x - self._setup["width"]
+                    self._spot_x = divs[anchor["latch_to_div"]]._spot_x - self._current_width
                 elif(anchor["edge_of_target_div"] == AnchorEdges.RIGHT):
-                    self._spot_x = divs[anchor["latch_to_div"]]._spot_x + divs[anchor["latch_to_div"]]._setup["width"]
+                    self._spot_x = divs[anchor["latch_to_div"]]._spot_x + divs[anchor["latch_to_div"]]._current_width
 
             if(self._setup["anchors"]["vertical"] != None):
                 anchor = self._setup["anchors"]["vertical"]
                 if(anchor["edge_of_target_div"] == AnchorEdges.TOP):
-                    self._spot_y = divs[anchor["latch_to_div"]]._spot_y - self._setup["height"]
+                    self._spot_y = divs[anchor["latch_to_div"]]._spot_y - self._current_height
                 elif(anchor["edge_of_target_div"] == AnchorEdges.BOTTOM):
-                    self._spot_y = divs[anchor["latch_to_div"]]._spot_y + divs[anchor["latch_to_div"]]._setup["height"]
+                    self._spot_y = divs[anchor["latch_to_div"]]._spot_y + divs[anchor["latch_to_div"]]._current_height
 
-        self._spot_x += self._setup["horizontal_margin"]
-        self._spot_y += self._setup["vertical_margin"]
+        if( isinstance(self._setup["horizontal_margin"], int) ):
+            self._current_horizontal_margin = self._setup["horizontal_margin"]
+        elif( isinstance(self._setup["horizontal_margin"], float) ):
+            self._current_horizontal_margin = self._relative_size( self._setup["horizontal_margin"], parent_width)
+        else:
+            err_msg = "Error: Div horizontal_margin may only be of type int or float."
+            raise ValueError(err_msg)
+
+        if( isinstance(self._setup["vertical_margin"], int) ):
+            self._current_vertical_margin = self._setup["vertical_margin"]
+        elif( isinstance(self._setup["vertical_margin"], float) ):
+            self._current_vertical_margin = self._relative_size( self._setup["vertical_margin"], parent_height)
+        else:
+            err_msg = "Error: Div vertical_margin may only be of type int or float."
+            raise ValueError(err_msg)
+
+        self._spot_x += self._current_horizontal_margin
+        self._spot_y += self._current_vertical_margin
 
         attributes = 0
         for a in self._setup["attributes"]:
             attributes = attributes | a.value
 
-        for l in range(self._setup["width"]):
+        for l in range(self._current_width):
             row += " "
-        for h in range(self._setup["height"]):
-            scr.addstr( self._spot_y+h, self._spot_x, row, color_pair | attributes )
+        for h in range(self._current_height):
+            if( (0 <= self._spot_y+h < curses.LINES) and (0 <= self._spot_x < curses.COLS) ):
+                scr.addstr( self._spot_y+h, self._spot_x, row, color_pair | attributes )
 
         return color_pair | attributes
 
@@ -228,6 +272,9 @@ class Label(Div):
 
     def __init__(self, setup):
         Div.__init__(self, setup)
+
+        self._current_inner_horizontal_margin = 0
+        self._current_inner_vertical_margin = 0
 
     def visual_update(self, scr, divs, color_handler):
         color_pair_and_attributes = Div.visual_update(self, scr, divs, color_handler)
@@ -244,24 +291,41 @@ class Label(Div):
         if(self._setup["inner"]["horizontal_alignment"] != None) :
             text_spot_x = self._aligners[self._setup["inner"]["horizontal_alignment"]](
                 self._spot_x,
-                self._spot_x + self._setup["width"] - 1,
+                self._spot_x + self._current_width - 1,
                 max_row_width )
 
         if(self._setup["inner"]["vertical_alignment"] != None) :
             text_spot_y = self._aligners[self._setup["inner"]["vertical_alignment"]](
                 self._spot_y,
-                self._spot_y + self._setup["height"] - 1,
+                self._spot_y + self._current_height - 1,
                 len(rows) )
 
-        text_spot_x += self._setup["inner"]["horizontal_margin"]
-        text_spot_y += self._setup["inner"]["vertical_margin"]
+        if( isinstance(self._setup["inner"]["horizontal_margin"], int) ):
+            self._current_inner_horizontal_margin = self._setup["inner"]["horizontal_margin"]
+        elif( isinstance(self._setup["inner"]["horizontal_margin"], float) ):
+            self._current_inner_horizontal_margin = self._relative_size( self._setup["inner"]["horizontal_margin"], self._current_width)
+        else:
+            err_msg = "Error: Inner horizontal_margin may only be of type int or float."
+            raise ValueError(err_msg)
+
+        if( isinstance(self._setup["inner"]["vertical_margin"], int) ):
+            self._current_inner_vertical_margin = self._setup["inner"]["vertical_margin"]
+        elif( isinstance(self._setup["inner"]["vertical_margin"], float) ):
+            self._current_inner_vertical_margin = self._relative_size( self._setup["inner"]["vertical_margin"], self._current_height)
+        else:
+            err_msg = "Error: Inner vertical_margin may only be of type int or float."
+            raise ValueError(err_msg)
+
+        text_spot_x += self._current_inner_horizontal_margin
+        text_spot_y += self._current_inner_vertical_margin
 
         for r in range( len(rows) ):
             centered_text_spot_x = self._aligners[Alignment.CENTER](
                 text_spot_x,
                 text_spot_x + max_row_width - 1,
                 len(rows[r]) )
-            scr.addstr( text_spot_y+r, centered_text_spot_x, rows[r], color_pair_and_attributes )
+            if( (0 <= text_spot_y+r < curses.LINES) and (0 <= centered_text_spot_x < curses.COLS) ):
+                scr.addstr( text_spot_y+r, centered_text_spot_x, rows[r], color_pair_and_attributes )
 
 class Button(Label):
 
@@ -284,6 +348,11 @@ class TextArea(Div):
         self.__cursor_below = 0
         self.__cursor_row_start = 0
         self.__cursor_row_end = 0
+        self.__inner_width = 0
+        self.__inner_height = 0
+
+        self._current_inner_horizontal_margin = 0
+        self._current_inner_vertical_margin = 0
 
     def visual_update(self, scr, divs, color_handler):
         color_pair_and_attributes = Div.visual_update(self, scr, divs, color_handler)
@@ -299,15 +368,31 @@ class TextArea(Div):
             cursor_row = 0
             cursor_col = -1
 
+        if( isinstance(self._setup["inner"]["width"], int) ):
+            self.__inner_width = self._setup["inner"]["width"]
+        elif( isinstance(self._setup["inner"]["width"], float) ):
+            self.__inner_width = self._relative_size( self._setup["inner"]["width"], self._current_width)
+        else:
+            err_msg = "Error: Inner width may only be of type int or float."
+            raise ValueError(err_msg)
+
+        if( isinstance(self._setup["inner"]["height"], int) ):
+            self.__inner_height = self._setup["inner"]["height"]
+        elif( isinstance(self._setup["inner"]["height"], float) ):
+            self.__inner_height = self._relative_size( self._setup["inner"]["height"], self._current_height)
+        else:
+            err_msg = "Error: Inner height may only be of type int or float."
+            raise ValueError(err_msg)
+
         for c in range( len(self._setup["inner"]["value"]) ):
             if( c == self.__cursor_index ):
                 if( self._setup["inner"]["value"][c] == "\n" ):
                     cursor_row = len(rows)+1
                     cursor_col = -1
-                elif( col_counter == (self._setup["inner"]["width"])-1 ):
+                elif( col_counter == (self.__inner_width)-1 ):
                     cursor_row = len(rows)+1
                     cursor_col = -1
-                elif( col_counter > (self._setup["inner"]["width"])-1 ):
+                elif( col_counter > (self.__inner_width)-1 ):
                     cursor_row = len(rows)+1
                     cursor_col = 0
                 else:
@@ -318,7 +403,7 @@ class TextArea(Div):
                 row = ""
                 col_counter = 0
                 continue
-            elif( col_counter >= (self._setup["inner"]["width"]) ):
+            elif( col_counter >= (self.__inner_width) ):
                 rows.append(row)
                 row = ""
                 col_counter = 0
@@ -329,8 +414,8 @@ class TextArea(Div):
 
         self.__cursor_above = self.__cursor_index
         if(cursor_row > 0):
-            if( len(rows[cursor_row-1]) == (self._setup["inner"]["width"]) ):
-                self.__cursor_above -= (self._setup["inner"]["width"])
+            if( len(rows[cursor_row-1]) == (self.__inner_width) ):
+                self.__cursor_above -= (self.__inner_width)
 
             else:
                 self.__cursor_above -= (cursor_col + 1)
@@ -347,8 +432,8 @@ class TextArea(Div):
             self.__cursor_below = len(self._setup["inner"]["value"]) - 1
         elif(cursor_row < len(rows)-1):
 
-            if( len(rows[cursor_row]) == (self._setup["inner"]["width"]) ):
-                self.__cursor_below += (self._setup["inner"]["width"])
+            if( len(rows[cursor_row]) == (self.__inner_width) ):
+                self.__cursor_below += (self.__inner_width)
 
             else:
                 self.__cursor_below = self.__cursor_index - cursor_col - 1
@@ -374,41 +459,60 @@ class TextArea(Div):
         if(self._setup["inner"]["horizontal_alignment"] != None) :
             text_spot_x = self._aligners[self._setup["inner"]["horizontal_alignment"]](
                 self._spot_x,
-                self._spot_x + self._setup["width"] - 1,
-                self._setup["inner"]["width"] )
+                self._spot_x + self._current_width - 1,
+                self.__inner_width )
 
         if(self._setup["inner"]["vertical_alignment"] != None) :
             text_spot_y = self._aligners[self._setup["inner"]["vertical_alignment"]](
                 self._spot_y,
-                self._spot_y + self._setup["height"] - 1,
-                self._setup["inner"]["height"] )
+                self._spot_y + self._current_height - 1,
+                self.__inner_height )
 
-        text_spot_x += self._setup["inner"]["horizontal_margin"]
-        text_spot_y += self._setup["inner"]["vertical_margin"]
+        if( isinstance(self._setup["inner"]["horizontal_margin"], int) ):
+            self._current_inner_horizontal_margin = self._setup["inner"]["horizontal_margin"]
+        elif( isinstance(self._setup["inner"]["horizontal_margin"], float) ):
+            self._current_inner_horizontal_margin = self._relative_size( self._setup["inner"]["horizontal_margin"], self._current_width)
+        else:
+            err_msg = "Error: Inner horizontal_margin may only be of type int or float."
+            raise ValueError(err_msg)
+
+        if( isinstance(self._setup["inner"]["vertical_margin"], int) ):
+            self._current_inner_vertical_margin = self._setup["inner"]["vertical_margin"]
+        elif( isinstance(self._setup["inner"]["vertical_margin"], float) ):
+            self._current_inner_vertical_margin = self._relative_size( self._setup["inner"]["vertical_margin"], self._current_height)
+        else:
+            err_msg = "Error: Inner vertical_margin may only be of type int or float."
+            raise ValueError(err_msg)
+
+        text_spot_x += self._current_inner_horizontal_margin
+        text_spot_y += self._current_inner_vertical_margin
 
         starting_row = 0
-        if( len(rows) >= self._setup["inner"]["height"] ):
-            starting_row = cursor_row - self._setup["inner"]["height"] + 1
+        if( len(rows) >= self.__inner_height ):
+            starting_row = cursor_row - self.__inner_height + 1
             if starting_row < 0 :
                 starting_row = 0
         printed_rows = 0
 
-        for r in range(starting_row, numpy.clip( starting_row+self._setup["inner"]["height"], 0, len(rows) ) ):
-            scr.addstr( text_spot_y+printed_rows, text_spot_x, rows[r], color_pair_and_attributes )
+        for r in range(starting_row, numpy.clip( starting_row+self.__inner_height, 0, len(rows) ) ):
+            if( (0 <= text_spot_y+printed_rows < curses.LINES) and (0 <= text_spot_x < curses.COLS) ):
+                scr.addstr( text_spot_y+printed_rows, text_spot_x, rows[r], color_pair_and_attributes )
             if( self.status == DivStatus.ACTIVE ):
                 if( r == cursor_row ):
                     scr.move(text_spot_y+printed_rows, text_spot_x+cursor_col+1)
                     char_at_cursor = chr(scr.inch()&255)
-                    scr.addstr( text_spot_y+printed_rows, text_spot_x+cursor_col+1, char_at_cursor, color_pair_and_attributes
-                        | curses.A_REVERSE | curses.A_BLINK )
+                    if( (0 <= text_spot_y+printed_rows < curses.LINES) and (0 <= text_spot_x+cursor_col+1 < curses.COLS) ):
+                        scr.addstr( text_spot_y+printed_rows, text_spot_x+cursor_col+1, char_at_cursor, color_pair_and_attributes
+                            | curses.A_REVERSE | curses.A_BLINK )
             printed_rows += 1
 
         if( self.status == DivStatus.ACTIVE ):
             if( cursor_row == len(rows) ):
-                scr.move(text_spot_y+ numpy.clip(len(rows), 0, self._setup["inner"]["height"]-1) , text_spot_x)
+                scr.move(text_spot_y+ numpy.clip(len(rows), 0, self.__inner_height-1) , text_spot_x)
                 char_at_cursor = chr(scr.inch()&255)
-                scr.addstr( text_spot_y+ numpy.clip(len(rows), 0, self._setup["inner"]["height"]-1), text_spot_x, char_at_cursor, color_pair_and_attributes
-                    | curses.A_REVERSE | curses.A_BLINK )
+                if( (0 <= (text_spot_y + numpy.clip(len(rows), 0, self.__inner_height-1)) < curses.LINES) and (0 <= text_spot_x < curses.COLS) ):
+                    scr.addstr( text_spot_y + numpy.clip(len(rows), 0, self.__inner_height-1), text_spot_x, char_at_cursor, color_pair_and_attributes
+                        | curses.A_REVERSE | curses.A_BLINK )
 
     def handle_input(self, key, hex_master):
         if(self.status == DivStatus.FOCUSED):
