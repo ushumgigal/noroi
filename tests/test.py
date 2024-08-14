@@ -31,8 +31,6 @@ def handle_no_input():
 
 hex_master_setup = \
 {
-    "input_timeout_ms" : 250,
-    "esc_timeout_ms" : 10,
     "no_input_frame_update" : handle_no_input,
     "post_input_frame_update": handle_post_frame,
 }
@@ -52,17 +50,8 @@ main = \
         DivStatus.IDLE : { "bg": [1,0, 444], "fg": [999,49,0] },
     },
 
-    "attributes" : [] ,
-
-    "parent": None,
-
     "horizontal_alignment" : Alignment.CENTER,
     "vertical_alignment" : Alignment.CENTER,
-
-    "anchors": None,
-
-    "horizontal_margin": 0,
-    "vertical_margin": 0,
 }
 
 banner = \
@@ -83,20 +72,12 @@ banner = \
         "value": "Noroi Example",
         "horizontal_alignment" : Alignment.CENTER,
         "vertical_alignment" : Alignment.CENTER,
-        "horizontal_margin": 0,
-        "vertical_margin": 0,
     },
-
-    "attributes" : [] ,
 
     "parent": "main",
 
     "horizontal_alignment" : Alignment.CENTER,
-    "vertical_alignment" : None,
 
-    "anchors": None,
-
-    "horizontal_margin": 0,
     "vertical_margin": 1,
 }
 
@@ -116,22 +97,13 @@ status_bar = \
     "inner":
     {
         "value": "status...",
-        "horizontal_alignment" : None,
-        "vertical_alignment" : None,
         "horizontal_margin": 1,
-        "vertical_margin": 0,
     },
 
-    "attributes" : [] ,
-
-    "parent": None,
-
     "horizontal_alignment" : Alignment.CENTER,
-    "vertical_alignment" : None,
 
     "anchors":
     {
-        "horizontal": None,
         "vertical":
         {
             "latch_to_div": "main",
@@ -139,8 +111,6 @@ status_bar = \
         },
     },
 
-    "horizontal_margin": 0,
-    "vertical_margin": 0,
 }
 
 quit_popup = \
@@ -156,24 +126,13 @@ quit_popup = \
         DivStatus.IDLE : { "bg": [301,0, 444], "fg": [999,49,0] },
     },
 
-    "attributes" : [] ,
-
-    "parent": None,
-
     "horizontal_alignment" : Alignment.CENTER,
     "vertical_alignment" : Alignment.CENTER,
-
-    "anchors": None,
-
-    "horizontal_margin": 0,
-    "vertical_margin": 0,
 
     "inner":
     {
         "value": "You're leaving already?",
         "horizontal_alignment" : Alignment.CENTER,
-        "vertical_alignment" : None,
-        "horizontal_margin": 0,
         "vertical_margin": 0.20,
     },
 }
@@ -190,8 +149,6 @@ verify_quit_button = \
         "value": "AYE",
         "horizontal_alignment" : Alignment.CENTER,
         "vertical_alignment" : Alignment.CENTER,
-        "horizontal_margin": 0,
-        "vertical_margin": 0,
     },
 
     "height" : 3,
@@ -204,14 +161,10 @@ verify_quit_button = \
         DivStatus.DISABLED : { "bg": [121,0, 0], "fg": [0,0,30] }
     },
 
-    "attributes" : [] ,
-
     "parent": "quit_popup",
 
     "horizontal_alignment" : Alignment.END,
     "vertical_alignment" : Alignment.END,
-
-    "anchors": None,
 
     "horizontal_margin": -.15,
     "vertical_margin": -3,
@@ -242,8 +195,6 @@ cancel_quit_button = \
         "value": "NAY",
         "horizontal_alignment" : Alignment.CENTER,
         "vertical_alignment" : Alignment.CENTER,
-        "horizontal_margin": 0,
-        "vertical_margin": 0,
     },
 
     "height" : 3,
@@ -256,14 +207,9 @@ cancel_quit_button = \
         DivStatus.DISABLED : { "bg": [121,0, 0], "fg": [0,0,30] }
     },
 
-    "attributes" : [] ,
-
     "parent": "quit_popup",
 
-    "horizontal_alignment" : None,
     "vertical_alignment" : Alignment.END,
-
-    "anchors": None,
 
     "horizontal_margin": .15,
     "vertical_margin": -3,
@@ -293,8 +239,6 @@ quit_button = \
     {
         "value": "Quit",
         "horizontal_alignment" : Alignment.CENTER,
-        "vertical_alignment" : None,
-        "horizontal_margin": 0,
         "vertical_margin": 1,
     },
 
@@ -308,14 +252,10 @@ quit_button = \
         DivStatus.DISABLED : { "bg": [121,0, 0], "fg": [0,0,30] }
     },
 
-    "attributes" : [] ,
-
     "parent": "main",
 
     "horizontal_alignment" : Alignment.END,
     "vertical_alignment" : Alignment.END,
-
-    "anchors": None,
 
     "horizontal_margin": -10,
     "vertical_margin": -10,
@@ -344,8 +284,6 @@ some_text = \
         "height": 0.9,
         "horizontal_alignment" : Alignment.CENTER,
         "vertical_alignment" : Alignment.CENTER,
-        "horizontal_margin": 0,
-        "vertical_margin": 0,
     },
 
     "width": .4,
@@ -360,17 +298,11 @@ some_text = \
         "cursor" : { "bg": [0,321, 0], "fg": [999,49,0] },
     },
 
-    "attributes" : [] ,
-
     "parent": "main",
 
-    "horizontal_alignment" : None,
     "vertical_alignment" : Alignment.CENTER,
 
-    "anchors": None,
-
     "horizontal_margin": .14,
-    "vertical_margin": 0,
 
     "key_map":
     {
@@ -413,8 +345,6 @@ enable_text_button = \
         "value": "← Enable Text Area",
         "horizontal_alignment" : Alignment.CENTER,
         "vertical_alignment" : Alignment.CENTER,
-        "horizontal_margin": 0,
-        "vertical_margin": 0,
     },
 
     "height" : 3,
@@ -427,14 +357,9 @@ enable_text_button = \
         DivStatus.DISABLED : { "bg": [0,121, 0], "fg": [0,0,30] }
     },
 
-    "attributes" : [] ,
-
     "parent": "main",
 
     "horizontal_alignment" : Alignment.END,
-    "vertical_alignment" : None,
-
-    "anchors": None,
 
     "horizontal_margin": -10,
     "vertical_margin": 10,

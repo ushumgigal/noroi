@@ -3,8 +3,8 @@ import curses
 
 class HexMaster:
 
-    def __init__(self, setup):
-        self.__setup = setup
+    def __init__(self, setup=None):
+        self.__setup = {} if (setup == None) else setup
         self.__divs = {}
         self.__div_constructors = {}
         self.__div_constructors[DivTypes.DIV] = Div
@@ -14,6 +14,14 @@ class HexMaster:
         self.__loop = True
         self.__focused_div = None
         self.__color_handler = ColorHandler()
+
+        self.__default_input_timeout_ms = 250
+        self.__default_esc_timeout_ms = 10
+
+        if( not("input_timeout_ms" in self.__setup) ):
+            self.__setup["input_timeout_ms"] = self.__default_input_timeout_ms
+        if( not("esc_timeout_ms" in self.__setup) ):
+            self.__setup["esc_timeout_ms"] = self.__default_esc_timeout_ms
 
     def resize(self, new_height, new_width):
         resize(self.__scr, new_height, new_width)
@@ -49,7 +57,7 @@ class HexMaster:
             key = self.__scr.get_wch()
         except curses.error as err:
             if(str(err) == "no input"):
-                if(self.__setup["no_input_frame_update"] != None):
+                if(self.__setup.get("no_input_frame_update") is not None):
                     self.__setup["no_input_frame_update"]()
                 return
 
@@ -59,12 +67,12 @@ class HexMaster:
                     if( k.value == key ):
                         if( self.__divs[self.__focused_div._setup["key_map"]["switch_focus"][k]].status == DivStatus.IDLE ):
                             self.focus(self.__focused_div._setup["key_map"]["switch_focus"][k])
-                            if(self.__setup["post_input_frame_update"] != None):
+                            if(self.__setup.get("post_input_frame_update") is not None):
                                 self.__setup["post_input_frame_update"]()
                             return
 
             self.__focused_div.handle_input(key, self)
-            if(self.__setup["post_input_frame_update"] != None):
+            if(self.__setup.get("post_input_frame_update") is not None):
                 self.__setup["post_input_frame_update"]()
 
     def __quit(self):
@@ -89,8 +97,9 @@ class HexMaster:
         widows = []
 
         for d in self.__divs:
-            if( self.__divs[d]._setup["parent"] == gone._setup["name"] ):
-                widows.append(self.__divs[d]._setup["name"])
+            if (self.__divs[d]._setup.get("parent") is not None) :
+                if( self.__divs[d]._setup["parent"] == gone._setup["name"] ):
+                    widows.append(self.__divs[d]._setup["name"])
 
         for w in widows:
             self.remove_div(w)

@@ -165,8 +165,10 @@ class Div:
         return relative_size
 
     def visual_update(self, scr, divs, color_handler):
-        parent_width = curses.COLS if (self._setup["parent"]==None) else divs[self._setup["parent"]]._current_width
-        parent_height = curses.LINES if (self._setup["parent"]==None) else divs[self._setup["parent"]]._current_height
+        parent_exists = (self._setup.get("parent") is not None)
+
+        parent_width = curses.COLS if (not parent_exists) else divs[self._setup["parent"]]._current_width
+        parent_height = curses.LINES if (not parent_exists) else divs[self._setup["parent"]]._current_height
 
         if( isinstance(self._setup["width"], int) ):
             self._current_width = self._setup["width"]
@@ -193,8 +195,8 @@ class Div:
 
         row = ""
 
-        if(self._setup["horizontal_alignment"] != None):
-            if(self._setup["parent"] != None):
+        if( self._setup.get("horizontal_alignment") is not None):
+            if(parent_exists):
                 self._spot_x = self._aligners[self._setup["horizontal_alignment"]](
                     divs[self._setup["parent"]]._spot_x,
                     divs[self._setup["parent"]]._spot_x + divs[self._setup["parent"]]._current_width - 1,
@@ -204,11 +206,11 @@ class Div:
                     0,
                     curses.COLS-1,
                     self._current_width )
-        elif(self._setup["parent"] != None):
+        elif(parent_exists):
             self._spot_x = divs[self._setup["parent"]]._spot_x
 
-        if(self._setup["vertical_alignment"] != None):
-            if(self._setup["parent"] != None):
+        if( self._setup.get("vertical_alignment") is not None):
+            if(parent_exists):
                 self._spot_y = self._aligners[self._setup["vertical_alignment"]](
                     divs[self._setup["parent"]]._spot_y,
                     divs[self._setup["parent"]]._spot_y + divs[self._setup["parent"]]._current_height - 1,
@@ -218,47 +220,50 @@ class Div:
                     0,
                     curses.LINES-1,
                     self._current_height )
-        elif(self._setup["parent"] != None):
+        elif(parent_exists):
             self._spot_y = divs[self._setup["parent"]]._spot_y
 
-        if(self._setup["anchors"] != None):
+        if( self._setup.get("anchors") is not None):
 
-            if(self._setup["anchors"]["horizontal"] != None):
+            if( self._setup.get("anchors").get("horizontal") is not None):
                 anchor = self._setup["anchors"]["horizontal"]
                 if(anchor["edge_of_target_div"] == AnchorEdges.LEFT):
                     self._spot_x = divs[anchor["latch_to_div"]]._spot_x - self._current_width
                 elif(anchor["edge_of_target_div"] == AnchorEdges.RIGHT):
                     self._spot_x = divs[anchor["latch_to_div"]]._spot_x + divs[anchor["latch_to_div"]]._current_width
 
-            if(self._setup["anchors"]["vertical"] != None):
+            if( self._setup.get("anchors").get("vertical") is not None):
                 anchor = self._setup["anchors"]["vertical"]
                 if(anchor["edge_of_target_div"] == AnchorEdges.TOP):
                     self._spot_y = divs[anchor["latch_to_div"]]._spot_y - self._current_height
                 elif(anchor["edge_of_target_div"] == AnchorEdges.BOTTOM):
                     self._spot_y = divs[anchor["latch_to_div"]]._spot_y + divs[anchor["latch_to_div"]]._current_height
 
-        if( isinstance(self._setup["horizontal_margin"], int) ):
-            self._current_horizontal_margin = self._setup["horizontal_margin"]
-        elif( isinstance(self._setup["horizontal_margin"], float) ):
-            self._current_horizontal_margin = self._relative_size( self._setup["horizontal_margin"], parent_width)
-        else:
-            err_msg = "Error: Div horizontal_margin may only be of type int or float."
-            raise ValueError(err_msg)
+        if( self._setup.get("horizontal_margin") is not None):
+            if( isinstance(self._setup["horizontal_margin"], int) ):
+                self._current_horizontal_margin = self._setup["horizontal_margin"]
+            elif( isinstance(self._setup["horizontal_margin"], float) ):
+                self._current_horizontal_margin = self._relative_size( self._setup["horizontal_margin"], parent_width)
+            else:
+                err_msg = "Error: Div horizontal_margin may only be of type int or float."
+                raise ValueError(err_msg)
 
-        if( isinstance(self._setup["vertical_margin"], int) ):
-            self._current_vertical_margin = self._setup["vertical_margin"]
-        elif( isinstance(self._setup["vertical_margin"], float) ):
-            self._current_vertical_margin = self._relative_size( self._setup["vertical_margin"], parent_height)
-        else:
-            err_msg = "Error: Div vertical_margin may only be of type int or float."
-            raise ValueError(err_msg)
+        if( self._setup.get("vertical_margin") is not None):
+            if( isinstance(self._setup["vertical_margin"], int) ):
+                self._current_vertical_margin = self._setup["vertical_margin"]
+            elif( isinstance(self._setup["vertical_margin"], float) ):
+                self._current_vertical_margin = self._relative_size( self._setup["vertical_margin"], parent_height)
+            else:
+                err_msg = "Error: Div vertical_margin may only be of type int or float."
+                raise ValueError(err_msg)
 
         self._spot_x += self._current_horizontal_margin
         self._spot_y += self._current_vertical_margin
 
         attributes = 0
-        for a in self._setup["attributes"]:
-            attributes = attributes | a.value
+        if( self._setup.get("attributes") is not None):
+            for a in self._setup["attributes"]:
+                attributes = attributes | a.value
 
         for l in range(self._current_width):
             row += " "
@@ -288,33 +293,35 @@ class Label(Div):
         text_spot_x = self._spot_x
         text_spot_y = self._spot_y
 
-        if(self._setup["inner"]["horizontal_alignment"] != None) :
+        if( self._setup.get("inner").get("horizontal_alignment") is not None):
             text_spot_x = self._aligners[self._setup["inner"]["horizontal_alignment"]](
                 self._spot_x,
                 self._spot_x + self._current_width - 1,
                 max_row_width )
 
-        if(self._setup["inner"]["vertical_alignment"] != None) :
+        if( self._setup.get("inner").get("vertical_alignment") is not None):
             text_spot_y = self._aligners[self._setup["inner"]["vertical_alignment"]](
                 self._spot_y,
                 self._spot_y + self._current_height - 1,
                 len(rows) )
 
-        if( isinstance(self._setup["inner"]["horizontal_margin"], int) ):
-            self._current_inner_horizontal_margin = self._setup["inner"]["horizontal_margin"]
-        elif( isinstance(self._setup["inner"]["horizontal_margin"], float) ):
-            self._current_inner_horizontal_margin = self._relative_size( self._setup["inner"]["horizontal_margin"], self._current_width)
-        else:
-            err_msg = "Error: Inner horizontal_margin may only be of type int or float."
-            raise ValueError(err_msg)
+        if( self._setup.get("inner").get("horizontal_margin") is not None):
+            if( isinstance(self._setup["inner"]["horizontal_margin"], int) ):
+                self._current_inner_horizontal_margin = self._setup["inner"]["horizontal_margin"]
+            elif( isinstance(self._setup["inner"]["horizontal_margin"], float) ):
+                self._current_inner_horizontal_margin = self._relative_size( self._setup["inner"]["horizontal_margin"], self._current_width)
+            else:
+                err_msg = "Error: Inner horizontal_margin may only be of type int or float."
+                raise ValueError(err_msg)
 
-        if( isinstance(self._setup["inner"]["vertical_margin"], int) ):
-            self._current_inner_vertical_margin = self._setup["inner"]["vertical_margin"]
-        elif( isinstance(self._setup["inner"]["vertical_margin"], float) ):
-            self._current_inner_vertical_margin = self._relative_size( self._setup["inner"]["vertical_margin"], self._current_height)
-        else:
-            err_msg = "Error: Inner vertical_margin may only be of type int or float."
-            raise ValueError(err_msg)
+        if( self._setup.get("inner").get("vertical_margin") is not None):
+            if( isinstance(self._setup["inner"]["vertical_margin"], int) ):
+                self._current_inner_vertical_margin = self._setup["inner"]["vertical_margin"]
+            elif( isinstance(self._setup["inner"]["vertical_margin"], float) ):
+                self._current_inner_vertical_margin = self._relative_size( self._setup["inner"]["vertical_margin"], self._current_height)
+            else:
+                err_msg = "Error: Inner vertical_margin may only be of type int or float."
+                raise ValueError(err_msg)
 
         text_spot_x += self._current_inner_horizontal_margin
         text_spot_y += self._current_inner_vertical_margin
@@ -456,33 +463,35 @@ class TextArea(Div):
         text_spot_x = self._spot_x
         text_spot_y = self._spot_y
 
-        if(self._setup["inner"]["horizontal_alignment"] != None) :
+        if( self._setup.get("inner").get("horizontal_alignment") is not None):
             text_spot_x = self._aligners[self._setup["inner"]["horizontal_alignment"]](
                 self._spot_x,
                 self._spot_x + self._current_width - 1,
                 self.__inner_width )
 
-        if(self._setup["inner"]["vertical_alignment"] != None) :
+        if( self._setup.get("inner").get("vertical_alignment") is not None):
             text_spot_y = self._aligners[self._setup["inner"]["vertical_alignment"]](
                 self._spot_y,
                 self._spot_y + self._current_height - 1,
                 self.__inner_height )
 
-        if( isinstance(self._setup["inner"]["horizontal_margin"], int) ):
-            self._current_inner_horizontal_margin = self._setup["inner"]["horizontal_margin"]
-        elif( isinstance(self._setup["inner"]["horizontal_margin"], float) ):
-            self._current_inner_horizontal_margin = self._relative_size( self._setup["inner"]["horizontal_margin"], self._current_width)
-        else:
-            err_msg = "Error: Inner horizontal_margin may only be of type int or float."
-            raise ValueError(err_msg)
+        if( self._setup.get("inner").get("horizontal_margin") is not None):
+            if( isinstance(self._setup["inner"]["horizontal_margin"], int) ):
+                self._current_inner_horizontal_margin = self._setup["inner"]["horizontal_margin"]
+            elif( isinstance(self._setup["inner"]["horizontal_margin"], float) ):
+                self._current_inner_horizontal_margin = self._relative_size( self._setup["inner"]["horizontal_margin"], self._current_width)
+            else:
+                err_msg = "Error: Inner horizontal_margin may only be of type int or float."
+                raise ValueError(err_msg)
 
-        if( isinstance(self._setup["inner"]["vertical_margin"], int) ):
-            self._current_inner_vertical_margin = self._setup["inner"]["vertical_margin"]
-        elif( isinstance(self._setup["inner"]["vertical_margin"], float) ):
-            self._current_inner_vertical_margin = self._relative_size( self._setup["inner"]["vertical_margin"], self._current_height)
-        else:
-            err_msg = "Error: Inner vertical_margin may only be of type int or float."
-            raise ValueError(err_msg)
+        if( self._setup.get("inner").get("vertical_margin") is not None):
+            if( isinstance(self._setup["inner"]["vertical_margin"], int) ):
+                self._current_inner_vertical_margin = self._setup["inner"]["vertical_margin"]
+            elif( isinstance(self._setup["inner"]["vertical_margin"], float) ):
+                self._current_inner_vertical_margin = self._relative_size( self._setup["inner"]["vertical_margin"], self._current_height)
+            else:
+                err_msg = "Error: Inner vertical_margin may only be of type int or float."
+                raise ValueError(err_msg)
 
         text_spot_x += self._current_inner_horizontal_margin
         text_spot_y += self._current_inner_vertical_margin

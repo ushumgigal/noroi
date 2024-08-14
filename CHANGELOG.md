@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.1.1] - 2024-08-14
+
+### Fixed
+
+- Handling ommited setup dictionary keys (optional ones.)
+- Default config vals for HexMaster & setup dictionary for HexMaster is now optional
+
 ## [1.1.0] - 2024-08-13
 
 ### Fixed
@@ -12,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - No cell is painted on overflow or underflow anymore
 
 ### Added
+
 - Screen resize is now a func, also optionally performed on HexMaster start
 - Relative Div/inner sizes and margins
 
