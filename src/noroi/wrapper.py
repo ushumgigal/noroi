@@ -3,6 +3,9 @@ import curses
 
 class HexMaster:
 
+    __default_input_timeout_ms = 250
+    __default_esc_timeout_ms = 10
+
     def __init__(self, setup=None):
         self.__setup = {} if (setup == None) else setup
         self.__divs = {}
@@ -15,13 +18,11 @@ class HexMaster:
         self.__focused_div = None
         self.__color_handler = ColorHandler()
 
-        self.__default_input_timeout_ms = 250
-        self.__default_esc_timeout_ms = 10
 
         if( not("input_timeout_ms" in self.__setup) ):
-            self.__setup["input_timeout_ms"] = self.__default_input_timeout_ms
+            self.__setup["input_timeout_ms"] = HexMaster.__default_input_timeout_ms
         if( not("esc_timeout_ms" in self.__setup) ):
-            self.__setup["esc_timeout_ms"] = self.__default_esc_timeout_ms
+            self.__setup["esc_timeout_ms"] = HexMaster.__default_esc_timeout_ms
 
     def resize(self, new_height, new_width):
         resize(self.__scr, new_height, new_width)

@@ -1,8 +1,14 @@
-# Change Log {#ChangeLog}
+# Change Log
 All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
+
+## Unreleased
+
+### Fixed
+
+- (noroi.HexMaster) default timeout variables are now class variables.
 
 ## [1.1.1] - 2024-08-14
 
